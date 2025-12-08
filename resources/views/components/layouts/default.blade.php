@@ -28,13 +28,21 @@
                 <a href="#" class="hover:text-gray-900">Profile</a>
             </div>
 
+
+
             <div class="flex gap-3">
-                <a href="{{ route('login') }}" class="px-4 py-1 border rounded-md text-gray-700 hover:bg-gray-50">
+
+                @if (Auth::check())
+                    <a href="{{ route('dashboard') }}">Dashboard</a>
+                @else
+                    <a href="{{ route('login') }}" class="px-4 py-1 border rounded-md text-gray-700 hover:bg-gray-50">
                     Login
                 </a>
                 <a href="{{ route('register') }}" class="px-4 py-1 bg-gray-800 text-white rounded-md hover:bg-gray-700">
                     Register
                 </a>
+                @endif
+                
             </div>
 
         </nav>
