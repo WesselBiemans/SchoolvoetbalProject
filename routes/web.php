@@ -17,4 +17,16 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+Route::get('/tournaments', function () {
+    return view('tournaments.index');
+})->middleware(['auth', 'verified'])->name('tournaments');
+Route::get('/bets', function () {
+    return view('bets.index');
+})->middleware(['auth', 'verified'])->name('bets');
+
+
+Route::get('/points', function () {
+    return view('points.index');
+})->middleware(['auth', 'verified'])->name('points');
+
 require __DIR__ . '/auth.php';
