@@ -23,3 +23,25 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 package-lock.json
+
+# Visual Studio user-specific and workspace files
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build output
+bin/
+obj/
+
+# Visual Studio database/cache files
+*.db
+*.v2
+*.dbcache.v2
+
+# Project evaluation and metadata
+*.bin
+
+# Backup files
+*.backup.json
