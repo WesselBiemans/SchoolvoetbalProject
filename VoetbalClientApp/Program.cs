@@ -5,17 +5,12 @@ namespace VoetbalClientApp
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-
-            User user = new User
-            {
-                Id = 1,
-                Username = "user1",
-                Points = 400,
-            };
-
             bool isRunning = true;
+
+            // User info after login
+            User? loggedInUser = null;
 
             Console.WriteLine("Welkom bij de Schoolsport voetbal weddenschap applicatie!\n\n");
             while (isRunning)
@@ -23,21 +18,27 @@ namespace VoetbalClientApp
                 bool notLoggedIn = true;
                 while (notLoggedIn)
                 {
-                    Console.WriteLine("Voer uw gebruikersnaam in:");
-                    string username = Console.ReadLine();
+                    Console.WriteLine("Voer uw email in:");
+                    string email = Console.ReadLine();
                     Console.Clear();
 
                     Console.WriteLine("Voer uw wachtwoord in:");
                     string password = Console.ReadLine();
                     Console.Clear();
 
-                    // TODO: API check if username && password exsist and are correct
-                    if (true)
+                    // API check
+                    try
                     {
+                        var auth = new AuthService();
+                        var result = await auth.LoginAsync(email, password);
+
+                        Console.WriteLine($"Welkom, {result.User.Name}!");
+                        loggedInUser = result.User;
                         notLoggedIn = false;
                     }
-                    else
+                    catch (Exception ex)
                     {
+                        Console.WriteLine($"Login mislukt: {ex.Message}");
                         Console.WriteLine("Uw gebruikersnaam en/of wachtwoord is onjuist, probeer het opnieuw.\n");
                     }
                 }
@@ -45,7 +46,6 @@ namespace VoetbalClientApp
                 bool inHomeMenu = true;
                 while (inHomeMenu)
                 {
-                    // List of main menu choices
                     Console.WriteLine("Typ uw keuze\n");
                     Console.WriteLine("[1] Bekijk uw account informatie");
                     Console.WriteLine("[2] Kies een wedstrijd om op te wedden");
@@ -58,7 +58,8 @@ namespace VoetbalClientApp
                     switch (userInput)
                     {
                         case "1":
-                            ViewUserInfo(user);
+                            if (loggedInUser != null)
+                                ViewUserInfo(loggedInUser);
                             break;
                         case "2":
                             BetOnMatch();
@@ -70,8 +71,6 @@ namespace VoetbalClientApp
                             inHomeMenu = false;
                             isRunning = false;
                             break;
-
-                        // Option not in list of choices
                         default:
                             break;
                     }
@@ -82,7 +81,7 @@ namespace VoetbalClientApp
         static void ViewUserInfo(User user)
         {
             Console.WriteLine("Hier is uw account informatie\n");
-            Console.WriteLine($"Gebruikersnaam: {user.Username}");
+            Console.WriteLine($"Gebruikersnaam: {user.Name}");
             Console.WriteLine($"Punten: {user.Points}");
 
             Console.WriteLine("\n\nDruk op enter om terug te gaan naar het homescherm");
@@ -135,7 +134,7 @@ namespace VoetbalClientApp
                     new Team { Id = 8, Name = "FC Groningen" }
                 ];
 
-                
+
                 foreach (Match match in matches)
                 {
                     string team1Name = "";
