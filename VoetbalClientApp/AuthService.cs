@@ -62,15 +62,14 @@ namespace VoetbalClientApp
                 _httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", CurrentToken);
 
-                return loginResponse; // Ensure a value is returned here
+                return loginResponse;
             }
 
-            throw new Exception("Login failed: Unexpected null response from the server."); // Handle null case explicitly
+            // In case of no response
+            throw new Exception("Login failed: Unexpected null response from the server.");
         }
 
-        /// <summary>
-        /// Get the currently authenticated user
-        /// </summary>
+        // Obtain info about user
         public async Task<User?> GetCurrentUserAsync()
         {
             if (string.IsNullOrEmpty(CurrentToken))
@@ -85,9 +84,7 @@ namespace VoetbalClientApp
             return CurrentUser;
         }
 
-        /// <summary>
-        /// Check if user is authenticated
-        /// </summary>
+        // See if user is authenticated
         public bool IsAuthenticated => !string.IsNullOrEmpty(CurrentToken);
     }
 

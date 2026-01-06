@@ -11,6 +11,7 @@ namespace VoetbalClientApp
 
             // User info after login
             User? loggedInUser = null;
+            string? authToken = null;
 
             Console.WriteLine("Welkom bij de Schoolsport voetbal weddenschap applicatie!\n\n");
             while (isRunning)
@@ -34,6 +35,7 @@ namespace VoetbalClientApp
 
                         Console.WriteLine($"Welkom, {result.User.Name}!");
                         loggedInUser = result.User;
+                        authToken = result.Token;
                         notLoggedIn = false;
                     }
                     catch (Exception ex)
@@ -49,7 +51,7 @@ namespace VoetbalClientApp
                     Console.WriteLine("Typ uw keuze\n");
                     Console.WriteLine("[1] Bekijk uw account informatie");
                     Console.WriteLine("[2] Kies een wedstrijd om op te wedden");
-                    Console.WriteLine("[3] Bekijk resultaten van afgelopen wedstrijden");
+                    Console.WriteLine("[3] Bekijk uw wedstrijden");
                     Console.WriteLine("[4] Sluit applicatie af");
 
                     string userInput = Console.ReadLine();
@@ -58,14 +60,21 @@ namespace VoetbalClientApp
                     switch (userInput)
                     {
                         case "1":
-                            if (loggedInUser != null)
-                                ViewUserInfo(loggedInUser);
+                            if (loggedInUser != null && authToken != null)
+                                await ViewUserInfo(loggedInUser, authToken);
                             break;
                         case "2":
-                            BetOnMatch();
+                            if (authToken != null)
+                            {
+                                await BetOnMatch(authToken);
+                                // Refresh user data after betting
+                                var apiService = new ApiService(authToken);
+                                loggedInUser = await apiService.GetCurrentUserAsync();
+                            }
                             break;
                         case "3":
-                            // code block
+                            if (authToken != null)
+                                await ViewUserBets(authToken);
                             break;
                         case "4":
                             inHomeMenu = false;
@@ -78,145 +87,234 @@ namespace VoetbalClientApp
             }
         }
 
-        static void ViewUserInfo(User user)
+        static async Task ViewUserInfo(User user, string token)
         {
-            Console.WriteLine("Hier is uw account informatie\n");
-            Console.WriteLine($"Gebruikersnaam: {user.Name}");
-            Console.WriteLine($"Punten: {user.Points}");
+            var apiService = new ApiService(token);
+            var currentUser = await apiService.GetCurrentUserAsync();
+
+            if (currentUser != null)
+            {
+                Console.WriteLine("Hier is uw account informatie\n");
+                Console.WriteLine($"Gebruikersnaam: {currentUser.Name}");
+                Console.WriteLine($"Email: {currentUser.Email}");
+                Console.WriteLine($"Punten: {currentUser.Points}");
+            }
+            else
+            {
+                Console.WriteLine("Kon account informatie niet ophalen.");
+            }
 
             Console.WriteLine("\n\nDruk op enter om terug te gaan naar het homescherm");
             Console.ReadLine();
             Console.Clear();
         }
 
-        static void BetOnMatch()
+        static async Task ViewUserBets(string token)
         {
-            bool invalidChoice = true;
+            var apiService = new ApiService(token);
+            var betsResponse = await apiService.GetUserBetsAsync();
+
+            if (betsResponse == null)
+            {
+                Console.WriteLine("Kon wedstrijden niet ophalen.");
+                Console.WriteLine("Druk op enter om terug te gaan");
+                Console.ReadLine();
+                Console.Clear();
+                return;
+            }
+
+            Console.WriteLine($"Uw huidige punten: {betsResponse.CurrentPoints}\n");
+            Console.WriteLine("Uw wedstrijden:\n");
+
+            if (betsResponse.Bets.Count == 0)
+            {
+                Console.WriteLine("U heeft nog geen wedstrijden geplaatst.");
+            }
+            else
+            {
+                foreach (var bet in betsResponse.Bets)
+                {
+                    string predictionText = bet.PredictedWinner switch
+                    {
+                        0 => "Gelijkspel",
+                        1 => bet.Match?.Team1?.Name ?? "Team 1",
+                        2 => bet.Match?.Team2?.Name ?? "Team 2",
+                        _ => "Onbekend"
+                    };
+
+                    Console.WriteLine($"Match: {bet.Match?.Team1?.Name} vs {bet.Match?.Team2?.Name}");
+                    Console.WriteLine($"  Inzet: {bet.BetAmount} punten");
+                    Console.WriteLine($"  Voorspelling: {predictionText} wint");
+                    Console.WriteLine($"  Status: {(bet.IsSettled ? $"Afgerekend - Uitbetaling: {bet.Payout}" : "Nog niet afgerekend")}");
+                    Console.WriteLine();
+                }
+            }
+
+            Console.WriteLine("\nDruk op enter om terug te gaan naar het homescherm");
+            Console.ReadLine();
+            Console.Clear();
+        }
+
+        static async Task BetOnMatch(string token)
+        {
+            var apiService = new ApiService(token);
+
+            Console.WriteLine("Ophalen van beschikbare wedstrijden...");
+            var matchesResponse = await apiService.GetAvailableMatchesForBettingAsync();
+
+            if (matchesResponse == null || matchesResponse.Matches.Count == 0)
+            {
+                Console.WriteLine("Geen wedstrijden beschikbaar om op te wedden.");
+                Console.WriteLine("Druk op enter om terug te gaan");
+                Console.ReadLine();
+                Console.Clear();
+                return;
+            }
+
+            var matches = matchesResponse.Matches.ToArray();
+            int matchesPerPage = 10;
+            int totalPages = (int)Math.Ceiling((double)matches.Length / matchesPerPage);
             int pageNum = 1;
+            bool invalidChoice = true;
+
             while (invalidChoice)
             {
+                Console.Clear();
+                Console.WriteLine($"Uw huidige punten: {matchesResponse.CurrentPoints}\n");
                 Console.WriteLine("Hier is een overzicht van een paar opkomende wedstrijden\n\n");
 
-                // TODO API call to show the first 10 upcoming matches
-                Match[] matches = [
-                    new Match { Id = 1, Team1Id = 1, Team2Id = 2, MatchDate = new DateTime(2024, 11, 10, 15, 30, 0) },
-                    new Match { Id = 2, Team1Id = 3, Team2Id = 4, MatchDate = new DateTime(2024, 10, 5, 18, 0, 0) },
-                    new Match { Id = 3, Team1Id = 5, Team2Id = 6, MatchDate = new DateTime(2024, 9, 20, 20, 15, 0) },
-                    new Match { Id = 4, Team1Id = 7, Team2Id = 8, MatchDate = new DateTime(2024, 8, 30, 14, 0, 0) },
-                    new Match { Id = 5, Team1Id = 2, Team2Id = 3, MatchDate = new DateTime(2024, 8, 15, 16, 0, 0) },
-                    new Match { Id = 6, Team1Id = 4, Team2Id = 5, MatchDate = new DateTime(2024, 8, 1, 19, 30, 0) },
-                    new Match { Id = 7, Team1Id = 6, Team2Id = 7, MatchDate = new DateTime(2024, 7, 20, 13, 0, 0) },
-                    new Match { Id = 8, Team1Id = 8, Team2Id = 1, MatchDate = new DateTime(2024, 7, 5, 17, 45, 0) },
-                    new Match { Id = 9, Team1Id = 3, Team2Id = 5, MatchDate = new DateTime(2024, 6, 25, 18, 30, 0) },
-                    new Match { Id = 10, Team1Id = 2, Team2Id = 6, MatchDate = new DateTime(2024, 6, 10, 20, 0, 0) },
-                    new Match { Id = 11, Team1Id = 4, Team2Id = 8, MatchDate = new DateTime(2024, 5, 30, 15, 0, 0) },
-                    new Match { Id = 12, Team1Id = 1, Team2Id = 7, MatchDate = new DateTime(2024, 5, 15, 19, 0, 0) },
-                    new Match { Id = 13, Team1Id = 5, Team2Id = 2, MatchDate = new DateTime(2024, 5, 1, 16, 30, 0) },
-                    new Match { Id = 14, Team1Id = 6, Team2Id = 3, MatchDate = new DateTime(2024, 4, 20, 18, 0, 0) },
-                    new Match { Id = 15, Team1Id = 7, Team2Id = 4, MatchDate = new DateTime(2024, 4, 5, 14, 0, 0) },
-                    new Match { Id = 16, Team1Id = 8, Team2Id = 5, MatchDate = new DateTime(2024, 3, 25, 20, 30, 0) },
-                    new Match { Id = 17, Team1Id = 1, Team2Id = 6, MatchDate = new DateTime(2024, 3, 10, 17, 0, 0) },
-                    new Match { Id = 18, Team1Id = 2, Team2Id = 7, MatchDate = new DateTime(2024, 2, 28, 19, 45, 0) },
-                    new Match { Id = 19, Team1Id = 3, Team2Id = 8, MatchDate = new DateTime(2024, 2, 15, 16, 0, 0) },
-                    new Match { Id = 20, Team1Id = 4, Team2Id = 1, MatchDate = new DateTime(2024, 2, 1, 18, 30, 0) }
-                ];
-
-                // TODO API call to get all teams
-                Team[] teams =
-                [
-                    new Team { Id = 1, Name = "Ajax" },
-                    new Team { Id = 2, Name = "PSV" },
-                    new Team { Id = 3, Name = "Feyenoord" },
-                    new Team { Id = 4, Name = "AZ Alkmaar" },
-                    new Team { Id = 5, Name = "FC Utrecht" },
-                    new Team { Id = 6, Name = "Vitesse" },
-                    new Team { Id = 7, Name = "SC Heerenveen" },
-                    new Team { Id = 8, Name = "FC Groningen" }
-                ];
-
-
-                foreach (Match match in matches)
+                for (int i = (pageNum - 1) * matchesPerPage; i < Math.Min(pageNum * matchesPerPage, matches.Length); i++)
                 {
-                    string team1Name = "";
-                    string team2Name = "";
-                    int matchLoopCount = 0;
-                    if (matchLoopCount <= pageNum * 10 && match.Id <= pageNum * 10 && match.Id >= pageNum * 10 - 10)
-                    {
-                        foreach (Team team in teams)
-                        {
-                            if (match.Team1Id == team.Id)
-                            {
-                                team1Name = team.Name;
-                            }
-
-                            if (match.Team2Id == team.Id)
-                            {
-                                team2Name = team.Name;
-                            }
-
-                        }
-                        Console.WriteLine($"[{match.Id}] Team {team1Name} vs Team {team2Name} | Datum van wedstrijd: {match.MatchDate.ToString()}");
-                    }
-                    matchLoopCount++;
+                    var match = matches[i];
+                    string betStatus = match.UserHasBet ? " (U heeft al gegokt op deze wedstrijd)" : "";
+                    Console.WriteLine($"[{match.Id}] {match.Team1?.Name} vs {match.Team2?.Name} | Datum: {match.MatchDate}{betStatus}");
                 }
 
-                Console.WriteLine("\nTyp het nummer van de wedstrijd waarvan je meer wilt zien");
+                Console.WriteLine("\nTyp het nummer van de wedstrijd waarop u wilt wedden");
                 if (pageNum > 1)
                 {
                     Console.WriteLine("Typ [T] om de vorige 10 wedstrijden te zien");
                 }
-                Console.WriteLine("Typ [V] om de volgende 10 wedstrijden te zien");
+                if (pageNum < totalPages)
+                {
+                    Console.WriteLine("Typ [V] om de volgende 10 wedstrijden te zien");
+                }
                 Console.WriteLine("Typ [X] om naar het homescherm te gaan");
+
                 string userInput = Console.ReadLine();
                 Console.Clear();
 
-                if (userInput.ToUpper() == "X")
+                if (userInput?.ToUpper() == "X")
                 {
                     break;
                 }
 
-                if (userInput.ToUpper() == "V")
+                if (userInput?.ToUpper() == "V" && pageNum < totalPages)
                 {
                     pageNum++;
                 }
-                else if (userInput.ToUpper() == "T" && pageNum > 1)
+                else if (userInput?.ToUpper() == "T" && pageNum > 1)
                 {
                     pageNum--;
                 }
-                else if (int.TryParse(userInput, out int userMatch))
+                else if (int.TryParse(userInput, out int matchId))
                 {
-                    int matchNum = 0;
-                    foreach (Match match in matches)
-                    {
-                        // Match isn't within current page, skip everything.
-                        if (match.Id < pageNum * 10)
-                        {
-                            continue;
-                        }
+                    // Find the match by ID
+                    var selectedMatch = matches.FirstOrDefault(m => m.Id == matchId);
 
-                        // Match is in current page
-                        matchNum++;
-                        if (match.Id == userMatch)
-                        {
-                            invalidChoice = false;
-                        }
-                        // Looped more than there are matches on page
-                        else if (matchNum >= 10 * pageNum)
-                        {
-                            Console.WriteLine("ERROR: Nummer niet binnen pagina opties, probeer het opnieuw");
-                            Console.WriteLine("Druk op enter om door te gaan");
-                            Console.ReadLine();
-                            Console.Clear();
-                            break;
-                        }
+                    if (selectedMatch == null)
+                    {
+                        Console.WriteLine("ERROR: Wedstrijd niet gevonden, probeer het opnieuw");
+                        Console.WriteLine("Druk op enter om door te gaan");
+                        Console.ReadLine();
+                        continue;
                     }
+
+                    // Check if match is on current page
+                    int matchIndex = Array.IndexOf(matches, selectedMatch);
+                    if (matchIndex < (pageNum - 1) * matchesPerPage || matchIndex >= pageNum * matchesPerPage)
+                    {
+                        Console.WriteLine("ERROR: Nummer niet binnen pagina opties, probeer het opnieuw");
+                        Console.WriteLine("Druk op enter om door te gaan");
+                        Console.ReadLine();
+                        continue;
+                    }
+
+                    if (selectedMatch.UserHasBet)
+                    {
+                        Console.WriteLine("U heeft al een wedstrijd geplaatst op deze match.");
+                        Console.WriteLine("Druk op enter om terug te gaan");
+                        Console.ReadLine();
+                        continue;
+                    }
+
+                    Console.WriteLine($"Wedstrijd: {selectedMatch.Team1?.Name} vs {selectedMatch.Team2?.Name}\n");
+                    Console.WriteLine("Op wie wilt u wedden?");
+                    Console.WriteLine($"[1] {selectedMatch.Team1?.Name} wint");
+                    Console.WriteLine($"[2] {selectedMatch.Team2?.Name} wint");
+                    Console.WriteLine("[0] Gelijkspel");
+
+                    string predictionInput = Console.ReadLine();
+
+                    if (!int.TryParse(predictionInput, out int prediction) || prediction < 0 || prediction > 2)
+                    {
+                        Console.WriteLine("Ongeldige keuze.");
+                        Console.WriteLine("Druk op enter om terug te gaan");
+                        Console.ReadLine();
+                        Console.Clear();
+                        continue;
+                    }
+
+                    Console.WriteLine($"\nHoeveel punten wilt u inzetten? (Beschikbaar: {matchesResponse.CurrentPoints})");
+                    string betAmountInput = Console.ReadLine();
+
+                    if (!int.TryParse(betAmountInput, out int betAmount) || betAmount <= 0)
+                    {
+                        Console.WriteLine("Ongeldig bedrag.");
+                        Console.WriteLine("Druk op enter om terug te gaan");
+                        Console.ReadLine();
+                        Console.Clear();
+                        continue;
+                    }
+
+                    if (betAmount > matchesResponse.CurrentPoints)
+                    {
+                        Console.WriteLine("U heeft niet genoeg punten.");
+                        Console.WriteLine("Druk op enter om terug te gaan");
+                        Console.ReadLine();
+                        Console.Clear();
+                        continue;
+                    }
+
+                    var betRequest = new PlaceBetRequest
+                    {
+                        MatchId = selectedMatch.Id,
+                        BetAmount = betAmount,
+                        PredictedWinner = prediction
+                    };
+
+                    var result = await apiService.PlaceBetAsync(betRequest);
+
+                    if (result != null)
+                    {
+                        Console.WriteLine($"\n{result.Message}");
+                        Console.WriteLine($"Resterende punten: {result.RemainingPoints}");
+                        invalidChoice = false;
+                    }
+                    else
+                    {
+                        Console.WriteLine("\nKon wedstrijd niet plaatsen.");
+                    }
+
+                    Console.WriteLine("\nDruk op enter om terug te gaan");
+                    Console.ReadLine();
+                    Console.Clear();
                 }
                 else
                 {
                     Console.WriteLine("ERROR: Invalide invoer, probeer het opnieuw");
                     Console.WriteLine("Druk op enter om door te gaan");
                     Console.ReadLine();
-                    Console.Clear();
                 }
             }
         }

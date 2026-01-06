@@ -28,6 +28,12 @@ class AuthController extends Controller
             ]);
         }
 
+        // Give user 1000 points if they have 0 points
+        if ($user->points == 0) {
+            $user->points = 1000;
+            $user->save();
+        }
+
         // Create token with device name
         $token = $user->createToken($request->device_name ?? 'winui-app')->plainTextToken;
 
