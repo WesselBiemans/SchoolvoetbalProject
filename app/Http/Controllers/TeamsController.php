@@ -45,9 +45,9 @@ class TeamsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Teams $teams)
+    public function show(Teams $team)
     {
-        return view('teams.show', compact('teams'));
+        return view('teams.show', compact('team'));
     }
 
     /**

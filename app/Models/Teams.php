@@ -15,4 +15,14 @@ class Teams extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function tournaments()
+    {
+        return $this->belongsToMany(
+            Tournament::class,
+            'teams_tournament',
+            'team_id',
+            'tournament_id'
+        );
+    }
 }

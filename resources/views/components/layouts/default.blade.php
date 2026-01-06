@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -23,7 +21,7 @@
             <div class="hidden md:flex gap-8 text-gray-600">
                 <a href="#" class="hover:text-gray-900">Home</a>
                 <a href="#" class="hover:text-gray-900">Tournaments</a>
-                <a href="#" class="hover:text-gray-900">Bets</a>
+                <a href="{{ route('tournament.create') }}" class="hover:text-gray-900">Bets</a>
                 <a href="#" class="hover:text-gray-900">Points</a>
                 <a href="#" class="hover:text-gray-900">Profile</a>
             </div>
@@ -36,13 +34,14 @@
                     <a href="{{ route('dashboard') }}">Dashboard</a>
                 @else
                     <a href="{{ route('login') }}" class="px-4 py-1 border rounded-md text-gray-700 hover:bg-gray-50">
-                    Login
-                </a>
-                <a href="{{ route('register') }}" class="px-4 py-1 bg-gray-800 text-white rounded-md hover:bg-gray-700">
-                    Register
-                </a>
+                        Login
+                    </a>
+                    <a href="{{ route('register') }}"
+                        class="px-4 py-1 bg-gray-800 text-white rounded-md hover:bg-gray-700">
+                        Register
+                    </a>
                 @endif
-                
+
             </div>
 
         </nav>

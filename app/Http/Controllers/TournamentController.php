@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Teams;
 use App\Models\Tournament;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class TournamentController extends Controller
@@ -22,7 +24,9 @@ class TournamentController extends Controller
      */
     public function create()
     {
-        return view('tournament.create');
+
+        $teams = Teams::all();
+        return view('tournament.create', compact('teams'));
     }
 
     /**
@@ -33,16 +37,54 @@ class TournamentController extends Controller
         $request->validate([
             'name' => 'required|string',
             'description' => 'required|string',
-            'start_date' => 'required',
-            'created_by' => 'required|integer'
+            'start_date' => 'required|date',
+            'created_by' => 'required|integer',
+            'teams' => 'required|array',
         ]);
 
-        Tournament::create($request->all());
+        $teams = $request->teams;
 
+        if (count($teams) < 4) {
+            return back()->withErrors([
+                'teams' => 'Een toernooi moet minimaal uit 4 teams bestaan.'
+            ]);
+        }
+
+        $tournament = Tournament::create($request->only([
+            'name',
+            'description',
+            'start_date',
+            'created_by'
+        ]));
+
+        $tournament->teams()->attach($teams);
+
+        $this->generateMatches($tournament, $teams);
 
         return redirect()->route('tournament.index')
             ->with('success', 'Tournament created successfully.');
     }
+    private function generateMatches(Tournament $tournament, array $teams)
+    {
+        $teamCount = count($teams);
+        $matchDay = 0;
+
+        for ($i = 0; $i < $teamCount; $i++) {
+            for ($j = $i + 1; $j < $teamCount; $j++) {
+                $tournament->matches()->create([
+                    'team_1_id' => $teams[$i],
+                    'team_2_id' => $teams[$j],
+                    'referee_id' => 1,
+                    'match_date' => date('Y-m-d H:i:s', strtotime($tournament->start_date . ' + ' . $matchDay . ' days')),
+                ]);
+                $matchDay++;
+            }
+        }
+    }
+
+
+
+
 
     /**
      * Display the specified resource.
