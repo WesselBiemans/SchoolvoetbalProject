@@ -14,6 +14,6 @@ class Players extends Model
 
     public function team()
     {
-        return $this->belongsTo(Teams::class);
+        return $this->belongsTo(Teams::class, 'team_id');
     }
 }

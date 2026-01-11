@@ -17,4 +17,19 @@ class Tournament extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function teams()
+    {
+        return $this->belongsToMany(
+            Teams::class,
+            'teams_tournament',
+            'tournament_id',
+            'team_id'
+        );
+    }
+
+    public function matches()
+    {
+        return $this->hasMany(Matches::class);
+    }
 }
