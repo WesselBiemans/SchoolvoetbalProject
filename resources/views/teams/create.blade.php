@@ -29,9 +29,18 @@
                         <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">
                             Team naam
                         </label>
+                        
                         <input type="text" name="name" id="name"
                             class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 outline-none"
                             placeholder="Bijv. Team Phoenix" value="{{ old('name') }}" required>
+
+                        <textarea
+                                name="players"
+                                id="players"
+                                rows="5"
+                                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500"
+                                placeholder="Freek&#10;Sven&#10;Timmy&#10;Tommy"
+                            >{{ old('players') }}</textarea>
                     </div>
 
                     <input type="hidden" name="created_by" value="{{ auth()->id() }}">

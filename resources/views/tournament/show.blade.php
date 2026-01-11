@@ -34,9 +34,21 @@
                 <h2 class="text-xl font-semibold text-gray-900 mb-4">Deelnemende teams</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     @forelse ($tournament->teams as $team)
-                        <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
-                            <p class="font-medium text-gray-900">{{ $team->name }}</p>
-                        </div>
+                        <a href="{{ route('teams.show', $team->id) }}" 
+                           class="block border border-gray-200 rounded-lg p-4 hover:bg-blue-50 hover:border-blue-300 transition duration-200">
+                            <div class="flex items-center justify-between">
+                                <p class="font-medium text-gray-900">{{ $team->name }}</p>
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </div>
+                            @if($team->players_count ?? $team->players->count() ?? 0)
+                                <p class="text-sm text-gray-500 mt-1">
+                                    {{ $team->players_count ?? $team->players->count() }} 
+                                    {{ ($team->players_count ?? $team->players->count()) === 1 ? 'speler' : 'spelers' }}
+                                </p>
+                            @endif
+                        </a>
                     @empty
                         <p class="text-gray-500 col-span-2">Geen teams gevonden</p>
                     @endforelse
@@ -51,9 +63,15 @@
                             <div class="flex justify-between items-center">
                                 <div class="flex-1">
                                     <p class="font-medium text-gray-900">
-                                        {{ $match->team1->name ?? 'Team 1' }}
+                                        <a href="{{ route('teams.show', $match->team1->id) }}" 
+                                           class="hover:text-blue-600 transition">
+                                            {{ $match->team1->name ?? 'Team 1' }}
+                                        </a>
                                         <span class="text-gray-500">vs</span>
-                                        {{ $match->team2->name ?? 'Team 2' }}
+                                        <a href="{{ route('teams.show', $match->team2->id) }}" 
+                                           class="hover:text-blue-600 transition">
+                                            {{ $match->team2->name ?? 'Team 2' }}
+                                        </a>
                                     </p>
                                     @if ($match->match_date)
                                         <p class="text-sm text-gray-500 mt-1">
