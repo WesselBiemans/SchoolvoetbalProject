@@ -21,12 +21,6 @@
                     <x-nav-link :href="route('teams.index')" :active="request()->routeIs('teams.*')">
                         {{ __('Teams') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('bets')" :active="request()->routeIs('bets')">
-                        {{ __('Bets') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('points')" :active="request()->routeIs('points')">
-                        {{ __('Points') }}
-                    </x-nav-link>
                     <x-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.edit')">
                         {{ __('Profile') }}
                     </x-nav-link>
