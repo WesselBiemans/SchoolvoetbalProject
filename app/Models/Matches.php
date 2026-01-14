@@ -14,6 +14,7 @@ class Matches extends Model
         'team_1_score',
         'team_2_score',
         'match_date',
+        'is_played',
     ];
 
 

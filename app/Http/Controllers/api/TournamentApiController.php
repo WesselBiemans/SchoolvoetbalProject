@@ -14,9 +14,22 @@ class TournamentApiController extends Controller
         return response()->json(Tournament::all());
     }
 
+    /**
+     * Get only upcoming tournaments (start_date is in the future)
+     */
+    public function upcoming(): JsonResponse
+    {
+        $upcomingTournaments = Tournament::where('start_date', '>', now())
+            ->orderBy('start_date', 'asc')
+            ->with(['teams', 'matches'])
+            ->get();
+
+        return response()->json($upcomingTournaments);
+    }
+
     public function show(Tournament $tournament): JsonResponse
     {
-        return response()->json($tournament);
+        return response()->json($tournament->load(['teams', 'matches']));
     }
 
     public function store(Request $request): JsonResponse
