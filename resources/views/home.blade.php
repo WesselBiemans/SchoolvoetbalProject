@@ -1,5 +1,4 @@
 <x-app-layout>
-    <!-- Hero Section -->
     <div class="relative bg-gradient-to-r from-blue-600 to-blue-800 text-white py-20 px-4 sm:px-6 lg:px-8">
         <div class="max-w-7xl mx-auto">
             <div class="text-center">
@@ -10,7 +9,7 @@
                     Beheer toernooien, teams en wedstrijden op één plek
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <a href="{{ route('tournaments.index') }}"
+                    <a href="{{ route('tournament.index') }}"
                         class="bg-white text-blue-600 hover:bg-blue-50 font-bold py-4 px-8 rounded-lg transition duration-200 shadow-xl hover:shadow-2xl">
                         Bekijk Toernooien
                     </a>
@@ -23,7 +22,6 @@
         </div>
     </div>
 
-    <!-- Features Section -->
     <div class="bg-gray-50 py-16 px-4 sm:px-6 lg:px-8">
         <div class="max-w-7xl mx-auto">
             <h2 class="text-4xl font-bold text-center text-gray-900 mb-12">
@@ -31,7 +29,6 @@
             </h2>
 
             <div class="grid md:grid-cols-3 gap-8">
-                <!-- Feature 1 -->
                 <div class="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition duration-200">
                     <div class="text-5xl mb-4">⚽</div>
                     <h3 class="text-2xl font-bold text-gray-900 mb-3">Toernooien Organiseren</h3>
@@ -40,7 +37,6 @@
                     </p>
                 </div>
 
-                <!-- Feature 2 -->
                 <div class="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition duration-200">
                     <div class="text-5xl mb-4">👥</div>
                     <h3 class="text-2xl font-bold text-gray-900 mb-3">Teams Beheren</h3>
@@ -53,14 +49,13 @@
                     </a>
                 </div>
 
-                <!-- Feature 3 -->
                 <div class="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition duration-200">
                     <div class="text-5xl mb-4">📊</div>
                     <h3 class="text-2xl font-bold text-gray-900 mb-3">Uitslagen & Statistieken</h3>
                     <p class="text-gray-600 mb-4">
                         Volg live scores, bekijk wedstrijdresultaten en analyseer team prestaties in real-time.
                     </p>
-                    <a href="{{ route('matches.index') }}"
+                    <a href="{{ route('tournament.index') }}"
                         class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center">
                         Bekijk wedstrijden →
                     </a>
@@ -69,7 +64,6 @@
         </div>
     </div>
 
-    <!-- Quick Stats Section -->
     <div class="bg-white py-16 px-4 sm:px-6 lg:px-8">
         <div class="max-w-7xl mx-auto">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
@@ -101,7 +95,6 @@
         </div>
     </div>
 
-    <!-- CTA Section -->
     <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16 px-4 sm:px-6 lg:px-8">
         <div class="max-w-4xl mx-auto text-center">
             <h2 class="text-3xl md:text-4xl font-bold mb-4">
