@@ -25,7 +25,7 @@ class Teams extends Model
     {
         return $this->belongsToMany(
             Tournament::class,
-            'teams_tournament',
+            'teams_tournaments',
             'team_id',
             'tournament_id'
         );
