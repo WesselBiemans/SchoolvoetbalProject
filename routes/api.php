@@ -40,5 +40,5 @@ Route::apiResource('tournaments', TournamentApiController::class);
 Route::get('/matches/upcoming/list', [MatchesApiController::class, 'upcoming']);
 Route::apiResource('matches', MatchesApiController::class);
 Route::apiResource('players', PlayersApiController::class);
-Route::apiResource('teams', TeamsApiController::class);
+// Route::apiResource('teams', TeamsApiController::class); ff gedisabled zodat de normale Teams route gwn werkt wtf??
 Route::apiResource('team-tournaments', TeamsTournamentApiController::class);
